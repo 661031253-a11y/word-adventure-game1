@@ -1,0 +1,1968 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Word Adventure - ผจญภัยตามหาเครื่องมือ Microsoft Word</title>
+
+<style>
+    /* =========================================================
+       WORD ADVENTURE
+       เกมการศึกษา Microsoft Word สำหรับนักเรียน
+       ใช้ HTML + CSS + JavaScript ไฟล์เดียว
+       ========================================================= */
+
+    :root{
+        --blue:#1677ff;
+        --dark-blue:#0754c8;
+        --sky:#eaf6ff;
+        --gold:#ffd84d;
+        --green:#36c96f;
+        --red:#ff5b68;
+        --purple:#8757ff;
+        --ink:#16324f;
+        --white:#fff;
+        --shadow:0 14px 35px rgba(0,0,0,.18);
+    }
+
+    *{box-sizing:border-box}
+
+    html,body{
+        margin:0;
+        width:100%;
+        min-height:100%;
+        font-family:"Trebuchet MS","Noto Sans Thai",Tahoma,sans-serif;
+        background:#07182c;
+        color:var(--ink);
+    }
+
+    body{
+        overflow-x:hidden;
+        overflow-y:hidden;
+    }
+
+    button,input{font:inherit}
+
+    button{
+        border:0;
+        cursor:pointer;
+    }
+
+    .screen{
+        display:none;
+        width:100%;
+        height:100vh;
+        min-height:100vh;
+        position:relative;
+        overflow:hidden;
+        background-color:transparent;
+    }
+
+    .screen.active{
+        display:flex;
+        animation:screenIn .55s ease both;
+    }
+
+    @keyframes screenIn{
+        from{opacity:0;transform:scale(.985)}
+        to{opacity:1;transform:scale(1)}
+    }
+
+
+    /* ---------- SOUND TOGGLE ---------- */
+    .sound-toggle{
+        position:fixed;
+        top:16px;
+        right:16px;
+        z-index:9999;
+        width:56px;
+        height:56px;
+        border-radius:50%;
+        display:grid;
+        place-items:center;
+        color:#fff;
+        font-size:27px;
+        line-height:1;
+        background:linear-gradient(145deg,#2b8cff,#1248c7);
+        border:3px solid rgba(255,255,255,.9);
+        box-shadow:0 8px 22px rgba(0,0,0,.35), inset 0 2px 5px rgba(255,255,255,.35);
+        transition:transform .15s ease, filter .15s ease;
+    }
+
+    .sound-toggle:hover{
+        transform:translateY(-2px) scale(1.04);
+        filter:brightness(1.08);
+    }
+
+    .sound-toggle:active{
+        transform:scale(.95);
+    }
+
+    .sound-toggle.muted{
+        background:linear-gradient(145deg,#64748b,#334155);
+    }
+
+    @media(max-width:520px){
+        .sound-toggle{
+            top:10px;
+            right:10px;
+            width:48px;
+            height:48px;
+            font-size:23px;
+        }
+    }
+
+    /* ---------- PAGE 1 : STUDENT NUMBER ---------- */
+
+    #page1{
+        align-items:center;
+        justify-content:center;
+        background-image:url('images/พื้นหลังถ้ำ.png');
+        background-size:cover;
+        background-position:center;
+        background-repeat:no-repeat;
+    }
+
+    .stars{
+        position:absolute;
+        inset:0;
+        pointer-events:none;
+        opacity:.45;
+        background-image:
+            radial-gradient(circle,#fff 1.2px,transparent 1.7px),
+            radial-gradient(circle,#9ee8ff 1px,transparent 1.5px);
+        background-size:87px 91px,137px 131px;
+        background-position:10px 20px,55px 45px;
+        animation:starMove 10s linear infinite;
+    }
+
+    @keyframes starMove{
+        to{background-position:100px 80px,20px 10px}
+    }
+
+    .login-card{
+        position:relative;
+        z-index:3;
+        width:min(900px,92vw);
+        min-height:520px;
+        border-radius:35px;
+        padding:35px;
+        display:flex;
+        align-items:center;
+        justify-content:center;
+        gap:30px;
+        background:rgba(255,255,255,.94);
+        box-shadow:0 30px 80px rgba(0,0,0,.35);
+        border:5px solid rgba(255,255,255,.7);
+    }
+
+    .login-wordy{
+        width:290px;
+        max-height:390px;
+        object-fit:contain;
+        animation:float 3s ease-in-out infinite;
+    }
+
+    .login-content{
+        flex:1;
+        text-align:center;
+    }
+
+    .logo-pill{
+        display:inline-block;
+        background:linear-gradient(135deg,#0878ff,#1543d5);
+        color:white;
+        padding:8px 18px;
+        border-radius:999px;
+        font-weight:900;
+        letter-spacing:.5px;
+        box-shadow:0 8px 20px rgba(0,95,255,.25);
+    }
+
+    h1{
+        margin:12px 0 8px;
+        font-size:clamp(34px,5vw,58px);
+        line-height:1;
+        color:#0b56c7;
+        text-shadow:0 4px 0 #cfe8ff;
+    }
+
+    .subtitle{
+        font-size:clamp(17px,2vw,22px);
+        line-height:1.6;
+        color:#405b73;
+    }
+
+    .number-input{
+        width:min(360px,100%);
+        padding:18px 22px;
+        border-radius:18px;
+        border:3px solid #b9dcff;
+        outline:none;
+        text-align:center;
+        font-size:30px;
+        font-weight:900;
+        color:#0754c8;
+        background:#f6fbff;
+        transition:.2s;
+    }
+
+    .number-input:focus{
+        border-color:var(--blue);
+        box-shadow:0 0 0 6px rgba(22,119,255,.12);
+    }
+
+    .main-btn{
+        margin-top:18px;
+        padding:16px 34px;
+        border-radius:18px;
+        color:white;
+        font-size:21px;
+        font-weight:900;
+        background:linear-gradient(135deg,#1677ff,#5d3bff);
+        box-shadow:0 10px 0 #093d9e,0 18px 30px rgba(0,0,0,.18);
+        transition:.15s;
+    }
+
+    .main-btn:hover{transform:translateY(-3px)}
+    .main-btn:active{transform:translateY(5px);box-shadow:0 4px 0 #093d9e}
+
+    .error{
+        min-height:26px;
+        color:#d52d3f;
+        font-weight:900;
+        margin-top:12px;
+    }
+
+    /* ---------- COMMON GAME UI ---------- */
+
+    .game-bg{
+        position:absolute;
+        inset:0;
+        background-size:cover;
+        background-position:center;
+        z-index:0;
+    }
+
+    .shade{
+        position:absolute;
+        inset:0;
+        z-index:1;
+        background:linear-gradient(180deg,rgba(3,21,38,.12),rgba(3,21,38,.42));
+    }
+
+    .topbar{
+        position:absolute;
+        z-index:20;
+        top:15px;
+        left:50%;
+        transform:translateX(-50%);
+        width:min(1160px,94vw);
+        display:flex;
+        align-items:center;
+        justify-content:space-between;
+        gap:12px;
+        padding:10px 14px;
+        border-radius:20px;
+        background:rgba(255,255,255,.9);
+        backdrop-filter:blur(10px);
+        box-shadow:var(--shadow);
+    }
+
+    .brand{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        font-weight:1000;
+        color:#0754c8;
+    }
+
+    .brand-w{
+        width:38px;
+        height:38px;
+        display:grid;
+        place-items:center;
+        border-radius:12px;
+        background:linear-gradient(145deg,#1788ff,#1547d7);
+        color:white;
+        font-size:25px;
+        box-shadow:inset 0 2px 6px rgba(255,255,255,.5);
+    }
+
+    .stats{
+        display:flex;
+        align-items:center;
+        gap:10px;
+        flex-wrap:wrap;
+        justify-content:flex-end;
+    }
+
+    .stat{
+        padding:8px 13px;
+        border-radius:12px;
+        background:#edf7ff;
+        color:#15568c;
+        font-weight:900;
+    }
+
+    .danger-btn{
+        padding:9px 13px;
+        border-radius:12px;
+        background:#ffecef;
+        color:#c52f46;
+        font-weight:900;
+    }
+
+    /* ---------- PAGE 2 : START ---------- */
+
+    #page2{
+        align-items:center;
+        justify-content:center;
+    }
+
+    .start-scene{
+        position:relative;
+        z-index:3;
+        width:min(1320px,94vw);
+        min-height:730px;
+        display:grid;
+        grid-template-columns:1fr 1.25fr 1fr;
+        align-items:end;
+        padding:55px 55px 35px;
+        background:rgba(255,255,255,.94);
+        border:6px solid rgba(255,255,255,.85);
+        border-radius:40px;
+        box-shadow:0 30px 80px rgba(0,0,0,.38);
+        backdrop-filter:blur(5px);
+    }
+
+    .scene-character{
+        max-height:440px;
+        width:100%;
+        object-fit:contain;
+        filter:drop-shadow(0 18px 14px rgba(0,0,0,.35));
+    }
+
+    .scene-character.left{animation:float 3.2s ease-in-out infinite}
+    .scene-character.right{animation:float 3.5s ease-in-out .4s infinite}
+
+    .scene-center{
+        align-self:center;
+        text-align:center;
+        padding:28px 22px;
+        border-radius:30px;
+        background:rgba(248,252,255,.96);
+        box-shadow:0 12px 30px rgba(24,75,115,.14);
+        border:3px solid #dceeff;
+    }
+
+    .scene-center h2{
+        margin:0 0 8px;
+        font-size:42px;
+        color:#7b4c19;
+    }
+
+    .scene-center p{
+        font-size:20px;
+        line-height:1.65;
+        margin:10px 0;
+    }
+
+    .wordy-small{
+        width:180px;
+        max-height:210px;
+        object-fit:contain;
+        animation:float 2.7s ease-in-out infinite;
+    }
+
+    .speech{
+        margin:12px auto;
+        max-width:580px;
+        background:#f8fbff;
+        border:3px solid #bde1ff;
+        border-radius:20px;
+        padding:14px 18px;
+        font-weight:900;
+        color:#255271;
+        line-height:1.55;
+    }
+
+    /* ---------- LEVEL INTRO ---------- */
+
+    .level-intro{
+        position:absolute;
+        z-index:30;
+        inset:0;
+        display:none;
+        align-items:center;
+        justify-content:center;
+        background:rgba(4,17,30,.58);
+        backdrop-filter:blur(4px);
+    }
+
+    .level-intro.show{display:flex}
+
+    .intro-card{
+        width:min(800px,92vw);
+        padding:25px 30px;
+        border-radius:30px;
+        background:linear-gradient(180deg,#fff,#eef8ff);
+        box-shadow:0 30px 90px rgba(0,0,0,.35);
+        text-align:center;
+        animation:pop .45s cubic-bezier(.2,1.4,.4,1) both;
+    }
+
+    @keyframes pop{
+        from{opacity:0;transform:scale(.7) translateY(30px)}
+        to{opacity:1;transform:scale(1) translateY(0)}
+    }
+
+    .intro-card img{
+        width:180px;
+        height:190px;
+        object-fit:contain;
+        animation:float 2.7s ease-in-out infinite;
+    }
+
+    .level-number{
+        color:#176ce3;
+        font-size:18px;
+        font-weight:1000;
+    }
+
+    .intro-card h2{
+        margin:3px 0 7px;
+        font-size:34px;
+        color:#163c68;
+    }
+
+    .intro-card p{
+        font-size:18px;
+        line-height:1.6;
+        margin:8px auto 17px;
+        max-width:650px;
+    }
+
+    /* ---------- LEVELS 1-4 : WORD SCREEN ---------- */
+
+    #levelScreen{
+        position:relative;
+        align-items:center;
+        justify-content:center;
+        background-image:url('images/พื้นหลังถ้ำ.png');
+        background-size:cover;
+        background-position:center;
+        background-repeat:no-repeat;
+    }
+
+    .word-stage{
+        position:relative;
+        z-index:4;
+        width:min(1220px,96vw);
+        margin-top:70px;
+    }
+
+    .instruction{
+        width:min(900px,100%);
+        margin:0 auto 12px;
+        padding:12px 18px;
+        border-radius:16px;
+        background:rgba(255,255,255,.93);
+        box-shadow:var(--shadow);
+        text-align:center;
+        font-weight:900;
+        color:#164b7a;
+    }
+
+    .word-window{
+        position:relative;
+        width:100%;
+        overflow:hidden;
+        border-radius:18px;
+        background:white;
+        box-shadow:0 25px 60px rgba(0,0,0,.45);
+        border:4px solid rgba(255,255,255,.8);
+    }
+
+    .word-window img{
+        width:100%;
+        height:auto;
+        display:block;
+        user-select:none;
+        -webkit-user-drag:none;
+    }
+
+    /* Clickable hotspots are placed using percentages so they scale
+       together with the supplied Microsoft Word screenshot. */
+
+    .hotspot{
+        position:absolute;
+        z-index:10;
+        border-radius:8px;
+        background:rgba(255,216,77,.05);
+        border:2px dashed transparent;
+        transition:.2s;
+    }
+
+    .hotspot:hover{
+        background:rgba(255,216,77,.2);
+        border-color:rgba(255,216,77,.85);
+        box-shadow:0 0 0 5px rgba(255,216,77,.12),0 0 25px rgba(255,216,77,.55);
+    }
+
+    .hotspot.correct-pulse{
+        animation:correctPulse 1s ease infinite;
+    }
+
+    @keyframes correctPulse{
+        0%,100%{box-shadow:0 0 0 0 rgba(255,216,77,.0)}
+        50%{box-shadow:0 0 0 8px rgba(255,216,77,.25),0 0 25px rgba(255,216,77,.65)}
+    }
+
+    /* Approximate positions for the buttons in the supplied screenshot.
+       They are percentages of the original 1672 x 941 image. */
+    .save-hotspot{
+        left:9.5%;
+        top:0.5%;
+        width:2.5%;
+        height:5%;
+    }
+
+    .bold-hotspot{
+        left:8.1%;
+        top:16.2%;
+        width:2.5%;
+        height:4.5%;
+    }
+
+    .italic-hotspot{
+        left:9.65%;
+        top:16.2%;
+        width:2.5%;
+        height:4.5%;
+    }
+
+    .underline-hotspot{
+        left:11.05%;
+        top:16.2%;
+        width:2.8%;
+        height:4.8%;
+    }
+
+    .hint-btn{
+        position:absolute;
+        z-index:20;
+        right:15px;
+        bottom:15px;
+        padding:12px 17px;
+        border-radius:14px;
+        background:#fff3b0;
+        color:#725300;
+        font-weight:1000;
+        box-shadow:0 8px 20px rgba(0,0,0,.22);
+    }
+
+    .tool-token{
+        display:none !important;
+        visibility:hidden !important;
+    }
+
+    @keyframes tokenIn{
+        from{opacity:0;transform:translate(-50%,-50%) scale(.1)}
+        to{opacity:1;transform:translate(-50%,-50%) scale(1)}
+    }
+
+    @keyframes spinFloat{
+        0%,100%{margin-top:0;transform:translate(-50%,-50%) rotate(-4deg)}
+        50%{margin-top:-15px;transform:translate(-50%,-50%) rotate(4deg)}
+    }
+
+    .success-banner{
+        position:absolute;
+        z-index:50;
+        left:50%;
+        top:50%;
+        transform:translate(-50%,-50%);
+        display:none;
+        width:min(520px,80vw);
+        max-height:70vh;
+        box-sizing:border-box;
+        text-align:center;
+        padding:22px 26px;
+        border-radius:26px;
+        background:rgba(255,255,255,.96);
+        box-shadow:0 25px 70px rgba(0,0,0,.35);
+        border:5px solid #baf5d0;
+    }
+
+    .success-banner.show{
+        display:block;
+        animation:pop .4s ease both;
+    }
+
+    .success-banner h2{
+        margin:0 0 8px;
+        color:#1b9d54;
+        font-size:30px;
+    }
+
+    .success-banner p{
+        margin:8px auto 16px;
+        font-size:18px;
+        line-height:1.5;
+        max-width:500px;
+    }
+
+    .success-banner > div:first-child{
+        font-size:42px !important;
+    }
+
+
+    @media(max-width:700px){
+        .success-banner{
+            width:min(520px,88vw);
+            padding:18px 20px;
+        }
+
+        .success-banner h2{
+            font-size:25px;
+        }
+
+        .success-banner p{
+            font-size:16px;
+        }
+
+        .tool-token{
+        display:none !important;
+        visibility:hidden !important;
+    }
+    }
+
+
+    /* ---------- WRONG ANSWER RED BAR ---------- */
+    .wrong-bar{
+        position:fixed;
+        top:88px;
+        left:50%;
+        transform:translate(-50%,-20px);
+        z-index:80;
+        width:min(560px,86vw);
+        padding:14px 24px;
+        border-radius:16px;
+        background:linear-gradient(135deg,#ff334f,#d7193f);
+        color:#fff;
+        text-align:center;
+        font-size:20px;
+        font-weight:1000;
+        box-shadow:0 10px 28px rgba(160,0,30,.35);
+        border:3px solid rgba(255,255,255,.9);
+        opacity:0;
+        visibility:hidden;
+        pointer-events:none;
+    }
+
+    .wrong-bar.show{
+        visibility:visible;
+        animation:wrongBarInOut 1.5s ease both;
+    }
+
+    @keyframes wrongBarInOut{
+        0%{opacity:0;transform:translate(-50%,-20px)}
+        15%,80%{opacity:1;transform:translate(-50%,0)}
+        100%{opacity:0;transform:translate(-50%,-20px)}
+    }
+
+    @media(max-width:520px){
+        .wrong-bar{
+            top:70px;
+            width:90vw;
+            padding:12px 16px;
+            font-size:17px;
+        }
+    }
+
+    /* ---------- LEVEL 5 ---------- */
+
+    #quizScreen{
+        position:relative;
+        align-items:center;
+        justify-content:center;
+        background-image:url('images/พื้นหลังถ้ำ.png');
+        background-size:cover;
+        background-position:center;
+        background-repeat:no-repeat;
+    }
+
+    .quiz-wrap{
+        position:relative;
+        z-index:4;
+        width:min(1050px,94vw);
+        margin-top:55px;
+    }
+
+    .quiz-card{
+        background:rgba(255,255,255,.95);
+        border-radius:30px;
+        box-shadow:var(--shadow);
+        padding:25px;
+        border:5px solid #fff;
+        min-height:570px;
+    }
+
+    .quiz-header{
+        display:flex;
+        align-items:center;
+        gap:15px;
+        margin-bottom:15px;
+    }
+
+    .quiz-wordy{
+        width:125px;
+        height:145px;
+        object-fit:contain;
+    }
+
+    .quiz-title h2{
+        margin:0;
+        color:#0754c8;
+        font-size:32px;
+    }
+
+    .quiz-title p{
+        margin:5px 0 0;
+        color:#5d7184;
+    }
+
+    .progress{
+        height:14px;
+        background:#e5edf5;
+        border-radius:999px;
+        overflow:hidden;
+        margin:10px 0 20px;
+    }
+
+    .progress-bar{
+        width:0%;
+        height:100%;
+        background:linear-gradient(90deg,#1677ff,#6d55ff);
+        border-radius:999px;
+        transition:.35s;
+    }
+
+    .question{
+        font-size:25px;
+        font-weight:1000;
+        line-height:1.5;
+        color:#193e60;
+        margin:10px 0 18px;
+    }
+
+    .answers{
+        display:grid;
+        grid-template-columns:1fr 1fr;
+        gap:13px;
+    }
+
+    .answer{
+        padding:16px;
+        min-height:70px;
+        border-radius:18px;
+        background:#f2f8ff;
+        border:3px solid #cbe5ff;
+        color:#1a4f7b;
+        font-size:18px;
+        font-weight:900;
+        text-align:left;
+        transition:.16s;
+    }
+
+    .answer:hover{
+        transform:translateY(-2px);
+        border-color:#6ab5ff;
+        background:#e9f5ff;
+    }
+
+    .answer.correct{
+        background:#dff9e9;
+        border-color:#35c974;
+        color:#13753e;
+    }
+
+    .answer.wrong{
+        background:#ffe4e8;
+        border-color:#ff6172;
+        color:#a42339;
+    }
+
+    .quiz-feedback{
+        min-height:34px;
+        margin-top:15px;
+        font-weight:1000;
+        font-size:19px;
+        text-align:center;
+    }
+
+    .next-btn{
+        display:none;
+        margin:12px auto 0;
+        padding:12px 25px;
+        border-radius:15px;
+        background:#176ce3;
+        color:#fff;
+        font-weight:1000;
+        box-shadow:0 7px 0 #0a4393;
+    }
+
+    .next-btn.show{display:block}
+
+    /* ---------- RESULT ---------- */
+
+    #resultScreen{
+        position:relative;
+        align-items:center;
+        justify-content:center;
+        background-image:url('images/พื้นหลังถ้ำ.png');
+        background-size:cover;
+        background-position:center;
+        background-repeat:no-repeat;
+    }
+
+    .result-card{
+        position:relative;
+        z-index:4;
+        width:min(900px,94vw);
+        padding:28px;
+        border-radius:35px;
+        background:rgba(255,255,255,.95);
+        box-shadow:0 30px 80px rgba(0,0,0,.25);
+        text-align:center;
+    }
+
+    .result-characters{
+        display:flex;
+        justify-content:center;
+        align-items:end;
+        gap:10px;
+        height:260px;
+    }
+
+    .result-characters img{
+        height:250px;
+        width:190px;
+        object-fit:contain;
+        filter:drop-shadow(0 12px 8px rgba(0,0,0,.18));
+    }
+
+    .result-characters .wordy-result{height:280px}
+
+    .medal{
+        font-size:65px;
+        animation:float 2s ease-in-out infinite;
+    }
+
+    .result-card h2{
+        font-size:38px;
+        margin:3px 0;
+        color:#0754c8;
+    }
+
+    .result-score{
+        font-size:26px;
+        font-weight:1000;
+        color:#264e70;
+        margin:10px;
+    }
+
+    .certificate{
+        display:inline-block;
+        padding:12px 18px;
+        margin:7px;
+        border-radius:15px;
+        background:#fff8d9;
+        border:2px solid #f0d777;
+        color:#735800;
+        font-weight:900;
+    }
+
+    .result-actions{
+        display:flex;
+        justify-content:center;
+        gap:10px;
+        flex-wrap:wrap;
+        margin-top:15px;
+    }
+
+    .secondary-btn{
+        padding:13px 20px;
+        border-radius:15px;
+        background:#eaf3ff;
+        color:#135aa8;
+        font-weight:1000;
+    }
+
+    /* ---------- CONFETTI ---------- */
+
+    #confetti{
+        position:fixed;
+        inset:0;
+        z-index:100;
+        pointer-events:none;
+        overflow:hidden;
+    }
+
+    .confetti-piece{
+        position:absolute;
+        top:-30px;
+        width:10px;
+        height:18px;
+        animation:fall 2.5s linear forwards;
+    }
+
+    @keyframes fall{
+        to{
+            transform:translateY(110vh) rotate(720deg);
+            opacity:.1;
+        }
+    }
+
+    /* ---------- FLOAT / RESPONSIVE ---------- */
+
+    @keyframes float{
+        0%,100%{transform:translateY(0)}
+        50%{transform:translateY(-12px)}
+    }
+
+    @media(max-width:800px){
+        .login-card{
+            flex-direction:column;
+            padding:22px;
+            min-height:0;
+        }
+
+        .login-wordy{
+            width:190px;
+            max-height:230px;
+        }
+
+        .start-scene{
+            grid-template-columns:1fr;
+            width:94vw;
+            padding:65px 18px 25px;
+            min-height:auto;
+            border-radius:30px;
+        }
+
+        .scene-character{
+            display:none;
+        }
+
+        .scene-center{
+            margin-top:45px;
+        }
+
+        .word-stage{
+            width:99vw;
+            margin-top:80px;
+        }
+
+        .topbar{
+            top:7px;
+            width:97vw;
+        }
+
+        .brand span:last-child{display:none}
+
+        .answers{
+            grid-template-columns:1fr;
+        }
+
+        .quiz-header{
+            align-items:flex-start;
+        }
+
+        .quiz-wordy{
+            width:85px;
+            height:100px;
+        }
+
+        .result-characters{
+            height:190px;
+        }
+
+        .result-characters img{
+            height:175px;
+            width:125px;
+        }
+
+        .result-characters .wordy-result{height:205px}
+    }
+
+    @media(max-width:520px){
+        .stats .stat:nth-child(2){display:none}
+        .instruction{font-size:14px}
+        .question{font-size:21px}
+        .answer{font-size:16px}
+        .scene-center h2{font-size:30px}
+    }
+</style>
+</head>
+
+<body>
+
+<!-- ปุ่มเปิด/ปิดเสียง ใช้ได้ทุกหน้า -->
+<button id="soundToggle"
+        class="sound-toggle"
+        type="button"
+        onclick="toggleSound()"
+        aria-label="เปิด/ปิดเสียง"
+        title="เปิด/ปิดเสียง">🔊</button>
+
+<!-- =========================================================
+     PAGE 1 : กรอกเลขที่
+     ========================================================= -->
+<section id="page1" class="screen active">
+    <div class="stars"></div>
+
+    <div class="login-card">
+        <img src="images/wordy.png" class="login-wordy" alt="Wordy">
+
+        <div class="login-content">
+            <div class="logo-pill">WORD ADVENTURE</div>
+            <h1>ผจญภัยในโลก Word</h1>
+            <p class="subtitle">
+                เกมการเรียนรู้ Microsoft Word
+            </p>
+
+            <label for="studentNumber"><strong>กรุณากรอกเลขที่ของนักเรียน</strong></label>
+            <br><br>
+            <input
+                id="studentNumber"
+                class="number-input"
+                type="number"
+                min="1"
+                max="99"
+                placeholder="เลขที่"
+                autocomplete="off"
+            >
+
+            <div id="numberError" class="error"></div>
+
+            <button class="main-btn" onclick="startAdventure()">
+                🚀 เข้าสู่การผจญภัย
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     PAGE 2 : เริ่มเกม / แอนิเมชั่นเปิดเรื่อง
+     ========================================================= -->
+<section id="page2" class="screen">
+    <div class="game-bg" style="background-image:url('images/พื้นหลังถ้ำ.png')"></div>
+    <div class="shade"></div>
+
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-w">W</div>
+            <span>WORD ADVENTURE</span>
+        </div>
+        <div class="stats">
+            <div class="stat">เลขที่ <span id="studentDisplay">-</span></div>
+            <div class="stat">คะแนน <span id="scoreDisplay">0</span></div>
+            <button class="danger-btn" onclick="goHome()">ออกจากเกม</button>
+        </div>
+    </div>
+
+    <div class="start-scene">
+        <div>
+            <img src="images/boy.png" class="scene-character left" alt="เด็กชาย">
+        </div>
+
+        <div class="scene-center">
+            <img src="images/wordy.png" class="wordy-small" alt="Wordy">
+            <h2>ภารกิจถ้ำลึกลับแห่ง Word</h2>
+
+            <div class="speech" id="openingSpeech">
+                👋 สวัสดีครับเด็ก ๆ! ผม Wordy วันนี้เราจะออกเดินทางไปตามหา
+                เครื่องมือสำคัญบนโปรแกรม Microsoft Word กัน!
+            </div>
+
+            <p>
+                เตรียมตัวให้พร้อม แล้วออกผจญภัยไปกับ Wordy!
+            </p>
+
+            <button class="main-btn" onclick="beginLevel(1)">
+                🎮 เริ่มเกม
+            </button>
+        </div>
+
+        <div>
+            <img src="images/girl.png" class="scene-character right" alt="เด็กหญิง">
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     LEVEL INTRO OVERLAY
+     ========================================================= -->
+<div id="levelIntro" class="level-intro">
+    <div class="intro-card">
+        <div class="level-number" id="introLevelNumber">ด่านที่ 1</div>
+        <img id="introWordy" src="images/wordy.png" alt="Wordy">
+        <h2 id="introTitle">ตามหา Save</h2>
+        <p id="introText">
+            Wordy จะพาเราเข้าไปในหน้าต่าง Microsoft Word
+            คลิกบริเวณเครื่องมือที่โจทย์กำหนดให้ถูกต้อง
+        </p>
+        <button class="main-btn" onclick="startCurrentLevel()">🔎 เริ่มค้นหา</button>
+    </div>
+</div>
+
+<!-- =========================================================
+     LEVELS 1-4 : Microsoft Word screenshot
+     ========================================================= -->
+<section id="levelScreen" class="screen">
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-w">W</div>
+            <span id="levelTopTitle">ด่านที่ 1 : ตามหา Save</span>
+        </div>
+
+        <div class="stats">
+            <div class="stat">เลขที่ <span id="studentDisplay2">-</span></div>
+            <div class="stat">ด่าน <span id="levelDisplay">1</span>/5</div>
+            <div class="stat">⭐ <span id="scoreDisplay2">0</span></div>
+        </div>
+    </div>
+
+    <div class="word-stage">
+        <div class="instruction" id="levelInstruction">
+            🔎 ค้นหาเครื่องมือ <strong>Save</strong> บนหน้า Microsoft Word แล้วคลิกให้ถูกตำแหน่ง
+        </div>
+
+        <div class="word-window" id="wordWindow">
+            <img src="images/หน้าโปรแกรม.png" alt="หน้าจอ Microsoft Word">
+
+            <!-- Hotspots -->
+            <button class="hotspot save-hotspot"
+                    data-tool="save"
+                    aria-label="Save"
+                    title="คลิกตรงนี้หากคิดว่านี่คือ Save"
+                    onclick="checkTool('save')"></button>
+
+            <button class="hotspot bold-hotspot"
+                    data-tool="bold"
+                    aria-label="Bold"
+                    title="คลิกตรงนี้หากคิดว่านี่คือ Bold"
+                    onclick="checkTool('bold')"></button>
+
+            <button class="hotspot italic-hotspot"
+                    data-tool="italic"
+                    aria-label="Italic"
+                    title="คลิกตรงนี้หากคิดว่านี่คือ Italic"
+                    onclick="checkTool('italic')"></button>
+
+            <button class="hotspot underline-hotspot"
+                    data-tool="underline"
+                    aria-label="Underline"
+                    title="คลิกตรงนี้หากคิดว่านี่คือ Underline"
+                    onclick="checkTool('underline')"></button>
+
+            <button class="hint-btn" onclick="showHint()">💡 ใบ้</button>
+
+            <img id="toolReward" class="tool-token" src="images/save.png" alt="เครื่องมือที่ค้นพบ" style="display:none">
+        </div>
+    </div>
+
+    <div id="successBanner" class="success-banner">
+        <div style="font-size:52px">🎉</div>
+        <h2 id="successTitle">เก่งมาก!</h2>
+        <p id="successText">พบเครื่องมือแล้ว</p>
+        <button class="main-btn" onclick="continueAfterSuccess()">➡️ ไปต่อ</button>
+    </div>
+</section>
+
+<!-- =========================================================
+     LEVEL 5 : QUIZ
+     ========================================================= -->
+<section id="quizScreen" class="screen">
+    <div class="topbar">
+        <div class="brand">
+            <div class="brand-w">W</div>
+            <span>ด่านที่ 5 : Word Quiz</span>
+        </div>
+
+        <div class="stats">
+            <div class="stat">เลขที่ <span id="studentDisplay3">-</span></div>
+            <div class="stat">คะแนน <span id="scoreDisplay3">0</span></div>
+        </div>
+    </div>
+
+    <div class="quiz-wrap">
+        <div class="quiz-card">
+            <div class="quiz-header">
+                <img src="images/wordy.png" class="quiz-wordy" alt="Wordy">
+                <div class="quiz-title">
+                    <h2>🧠 ด่านสุดท้าย : ตอบคำถาม Word</h2>
+                    <p>ตอบคำถาม 4 ข้อ เกี่ยวกับหน้าที่ของเครื่องมือ Microsoft Word</p>
+                </div>
+            </div>
+
+            <div class="progress">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+
+            <div id="questionNumber" class="level-number">ข้อที่ 1 / 4</div>
+            <div id="questionText" class="question"></div>
+            <div id="answers" class="answers"></div>
+
+            <div id="quizFeedback" class="quiz-feedback"></div>
+            <button id="nextQuestionBtn" class="next-btn" onclick="nextQuestion()">
+                ข้อต่อไป ➜
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- =========================================================
+     RESULT
+     ========================================================= -->
+<section id="resultScreen" class="screen">
+    <div class="result-card">
+        <div class="result-characters">
+            <img src="images/boy.png" alt="เด็กชาย">
+            <img src="images/wordy.png" class="wordy-result" alt="Wordy">
+            <img src="images/girl.png" alt="เด็กหญิง">
+        </div>
+
+        <div class="medal">🏆</div>
+        <h2>ภารกิจสำเร็จ!</h2>
+        <p class="result-score">
+            นักเรียนเลขที่ <strong id="resultStudent">-</strong><br>
+            ได้คะแนน <strong id="finalScore">0</strong> / 8 คะแนน
+        </p>
+
+        <div id="resultMessage" class="certificate">
+            เยี่ยมมาก! คุณรู้จักเครื่องมือพื้นฐานของ Microsoft Word แล้ว
+        </div>
+
+        <div class="result-actions">
+            <button class="main-btn" onclick="restartGame()">🔄 เล่นอีกครั้ง</button>
+            <button class="secondary-btn" onclick="goHome()">🏠 กลับหน้าแรก</button>
+        </div>
+    </div>
+</section>
+
+
+<!-- =========================================================
+     CENTER FEEDBACK MODAL
+     กล่องแจ้งผลตอบถูก/ผิด แสดงตรงกลางทุกข้อ
+     ========================================================= -->
+<div id="feedbackModal" class="feedback-modal">
+    <div id="feedbackModalCard" class="feedback-modal-card">
+
+        <div id="feedbackModalIcon" class="feedback-modal-icon">🎉</div>
+
+        <h2 id="feedbackModalTitle">เยี่ยมมาก!</h2>
+
+        <p id="feedbackModalText">
+            ตอบถูกต้อง
+        </p>
+
+        <button
+            id="feedbackModalButton"
+            class="main-btn feedback-modal-button"
+            onclick="closeFeedbackModal()"
+        >
+            ตกลง
+        </button>
+
+    </div>
+</div>
+
+
+<!-- แถบแจ้งเตือนเมื่อกดผิดในด่านที่ 1-4 -->
+<div id="wrongBar" class="wrong-bar" role="status" aria-live="polite">
+    ❌ กดผิด! <strong>-1 คะแนน</strong>
+</div>
+
+<div id="confetti"></div>
+
+
+<!-- =========================================================
+     SOUND SYSTEM
+     ========================================================= -->
+<audio id="bgmSound" src="sounds/sound2.mp3" preload="auto" loop></audio>
+
+
+
+<script>
+/* =========================================================
+   GAME DATA
+   ========================================================= */
+
+const game = {
+    studentNumber: "",
+    score: 0,
+    currentLevel: 1,
+    currentQuestion: 0,
+    hintsUsed: 0,
+    toolFound: false,
+    answered: false
+};
+
+const levelData = {
+    1: {
+        tool:"save",
+        title:"ตามหา Save",
+        short:"Save",
+        instruction:"🔎 ค้นหาเครื่องมือ <strong>Save</strong> บนหน้า Microsoft Word แล้วคลิกให้ถูกตำแหน่ง",
+        intro:"ภารกิจแรก! ตามหาเครื่องมือ Save ซึ่งใช้สำหรับบันทึกเอกสารของเรา",
+        hint:"💡 ใบ้: มองบริเวณด้านบนซ้ายของหน้าต่าง Microsoft Word ใกล้คำว่า AutoSave",
+        reward:"images/save.png",
+        rewardText:"พบ Save แล้ว! Save ใช้สำหรับบันทึกเอกสาร"
+    },
+    2: {
+        tool:"bold",
+        title:"ตามหา Bold",
+        short:"Bold",
+        instruction:"🔎 ค้นหาสัญลักษณ์ <strong>B</strong> สำหรับเครื่องมือ <strong>Bold</strong> แล้วคลิกให้ถูกตำแหน่ง",
+        intro:"ภารกิจที่สอง! ตามหา Bold เครื่องมือที่ทำให้ตัวอักษรดูหนาและเด่นชัดขึ้น",
+        hint:"💡 ใบ้: มองบริเวณกลุ่ม Font และสังเกตตัวอักษร B",
+        reward:null,
+        rewardText:"พบ Bold แล้ว! Bold ใช้ทำให้ตัวอักษรเป็นตัวหนา"
+    },
+    3: {
+        tool:"italic",
+        title:"ตามหา Italic",
+        short:"Italic",
+        instruction:"🔎 ค้นหาสัญลักษณ์ <strong>I</strong> สำหรับเครื่องมือ <strong>Italic</strong> แล้วคลิกให้ถูกตำแหน่ง",
+        intro:"ภารกิจที่สาม! ตามหา Italic เครื่องมือที่ทำให้ตัวอักษรเอียง",
+        hint:"💡 ใบ้: อยู่ใกล้ B ในกลุ่ม Font และมีลักษณะตัว I เอียง",
+        reward:null,
+        rewardText:"พบ Italic แล้ว! Italic ใช้ทำให้ตัวอักษรเอียง"
+    },
+    4: {
+        tool:"underline",
+        title:"ตามหา Underline",
+        short:"Underline",
+        instruction:"🔎 ค้นหาสัญลักษณ์ <strong>U</strong> สำหรับเครื่องมือ <strong>Underline</strong>",
+        intro:"ภารกิจที่สี่! ตามหา Underline เครื่องมือที่ใช้ขีดเส้นใต้ข้อความ",
+        hint:"💡 ใบ้: อยู่ถัดจาก B และ I ในกลุ่ม Font และเป็น U",
+        reward:null,
+        rewardText:"พบ Underline แล้ว! Underline ใช้ขีดเส้นใต้ข้อความ"
+    }
+};
+
+const questions = [
+    {
+        q:"1. Save มีหน้าที่อะไร?",
+        a:["ทำให้ตัวอักษรเอียง","ขีดเส้นใต้ข้อความ","บันทึกเอกสาร","ทำให้ตัวอักษรหนา"],
+        correct:2
+    },
+    {
+        q:"2. Bold มีหน้าที่อะไร?",
+        a:["ทำให้ตัวอักษรหนา","บันทึกเอกสาร","ขีดเส้นใต้ข้อความ","ทำให้ตัวอักษรเอียง"],
+        correct:0
+    },
+    {
+        q:"3. Italic มีหน้าที่อะไร?",
+        a:["ขีดเส้นใต้ข้อความ","ทำให้ตัวอักษรเอียง","ทำให้ตัวอักษรหนา","บันทึกเอกสาร"],
+        correct:1
+    },
+    {
+        q:"4. Underline มีหน้าที่อะไร?",
+        a:["ทำให้ตัวอักษรหนา","บันทึกเอกสาร","ขีดเส้นใต้ข้อความ","ทำให้ตัวอักษรเอียง"],
+        correct:2
+    }
+];
+
+/* =========================================================
+   BASIC UI
+   ========================================================= */
+
+function showScreen(id){
+    document.querySelectorAll(".screen").forEach(s => s.classList.remove("active"));
+    document.getElementById(id).classList.add("active");
+}
+
+function updateScoreDisplays(){
+    document.getElementById("scoreDisplay").textContent = game.score;
+    document.getElementById("scoreDisplay2").textContent = game.score;
+    document.getElementById("scoreDisplay3").textContent = game.score;
+}
+
+function updateStudentDisplays(){
+    document.getElementById("studentDisplay").textContent = game.studentNumber;
+    document.getElementById("studentDisplay2").textContent = game.studentNumber;
+    document.getElementById("studentDisplay3").textContent = game.studentNumber;
+    document.getElementById("resultStudent").textContent = game.studentNumber;
+}
+
+
+/* =========================================================
+   REAL SOUND SYSTEM + ON/OFF TOGGLE
+   ========================================================= */
+
+let soundEnabled = true;
+
+function updateSoundButton(){
+    const btn = document.getElementById("soundToggle");
+    const music = document.getElementById("bgmSound");
+    if(!btn) return;
+
+    if(soundEnabled){
+        btn.textContent = "🔊";
+        btn.classList.remove("muted");
+        btn.title = "ปิดเสียง";
+        btn.setAttribute("aria-label","ปิดเสียง");
+        if(music) music.muted = false;
+    }else{
+        btn.textContent = "🔇";
+        btn.classList.add("muted");
+        btn.title = "เปิดเสียง";
+        btn.setAttribute("aria-label","เปิดเสียง");
+        if(music) music.muted = true;
+    }
+}
+
+function toggleSound(){
+    const music = document.getElementById("bgmSound");
+    soundEnabled = !soundEnabled;
+
+    if(music){
+        music.volume = 0.18;
+        music.muted = !soundEnabled;
+
+        if(soundEnabled){
+            music.play().catch(()=>{});
+        }else{
+            music.pause();
+        }
+    }
+
+    updateSoundButton();
+}
+
+function playSound(id){
+    /* ไม่มี sound effect แยก */
+}
+
+function playTone(type="click"){
+    /* ไม่มี sound effect แยก */
+}
+
+function startBackgroundMusic(){
+    const music = document.getElementById("bgmSound");
+    if(!music || !soundEnabled) return;
+
+    music.volume = 0.18;
+    music.muted = false;
+    music.play().catch(()=>{});
+}
+
+
+/* =========================================================
+   PAGE 1
+   ========================================================= */
+
+function startAdventure(){
+    const input = document.getElementById("studentNumber");
+    const error = document.getElementById("numberError");
+    const value = input.value.trim();
+
+    if(!value || Number(value) < 1 || Number(value) > 99){
+        input.focus();
+        playTone("wrong");
+        return;
+    }
+
+    game.studentNumber = value;
+    game.score = 0;
+    game.currentLevel = 1;
+    game.currentQuestion = 0;
+    game.hintsUsed = 0;
+
+    error.textContent = "";
+    updateStudentDisplays();
+    updateScoreDisplays();
+    playTone("correct");
+
+    startBackgroundMusic();
+
+    showScreen("page2");
+
+    const speech = document.getElementById("openingSpeech");
+    speech.innerHTML = "✨ เยี่ยมเลย! เลขที่ <strong>" + value +
+        "</strong> พร้อมแล้วใช่ไหม? Wordy และเพื่อน ๆ รออยู่หน้าถ้ำ!";
+}
+
+function goHome(){
+    if(confirm("ต้องการกลับหน้าแรกและเริ่มข้อมูลใหม่หรือไม่?")){
+        showScreen("page1");
+        document.getElementById("studentNumber").value = game.studentNumber;
+    }
+}
+
+/* =========================================================
+   LEVEL FLOW
+   ========================================================= */
+
+function beginLevel(level){
+    game.currentLevel = level;
+
+    if(level <= 4){
+        showLevelIntro(level);
+    }else{
+        startQuiz();
+    }
+}
+
+function showLevelIntro(level){
+    const data = levelData[level];
+
+    document.getElementById("introLevelNumber").textContent = "ด่านที่ " + level;
+    document.getElementById("introTitle").textContent = data.title;
+    document.getElementById("introText").textContent = data.intro;
+
+    const intro = document.getElementById("levelIntro");
+    intro.classList.add("show");
+    playTone("click");
+}
+
+function startCurrentLevel(){
+    document.getElementById("levelIntro").classList.remove("show");
+
+    if(game.currentLevel <= 4){
+        setupToolLevel(game.currentLevel);
+        showScreen("levelScreen");
+    }else{
+        startQuiz();
+    }
+}
+
+function setupToolLevel(level){
+    const data = levelData[level];
+
+    document.getElementById("levelDisplay").textContent = level;
+    document.getElementById("levelTopTitle").textContent =
+        "ด่านที่ " + level + " : " + data.title;
+
+    document.getElementById("levelInstruction").innerHTML = data.instruction;
+
+    document.querySelectorAll(".hotspot").forEach(h => {
+        h.classList.remove("correct-pulse");
+        h.style.pointerEvents = "auto";
+    });
+
+    document.getElementById("toolReward").style.display = "none";
+    document.getElementById("successBanner").classList.remove("show");
+
+    game.toolFound = false;
+
+    // ช่วยให้เห็นว่าจุดที่ถูกต้องอยู่ตรงไหนเฉพาะหลังใช้ใบ้
+    const correctHotspot = document.querySelector(
+        '.hotspot[data-tool="' + data.tool + '"]'
+    );
+
+    if(correctHotspot){
+        correctHotspot.classList.remove("correct-pulse");
+    }
+}
+
+
+/* =========================================================
+   CENTER FEEDBACK MODAL
+   ใช้แสดงผลตอบถูก/ผิดตรงกลางหน้าจอ
+   ========================================================= */
+
+let feedbackModalNextAction = null;
+
+function showFeedbackModal(
+    type,
+    title,
+    message,
+    nextAction = null
+){
+    const modal =
+        document.getElementById("feedbackModal");
+
+    const card =
+        document.getElementById("feedbackModalCard");
+
+    const icon =
+        document.getElementById("feedbackModalIcon");
+
+    const titleEl =
+        document.getElementById("feedbackModalTitle");
+
+    const textEl =
+        document.getElementById("feedbackModalText");
+
+    const button =
+        document.getElementById("feedbackModalButton");
+
+    feedbackModalNextAction =
+        nextAction;
+
+    card.classList.remove(
+        "correct",
+        "wrong"
+    );
+
+    card.classList.add(type);
+
+    if(type === "correct"){
+
+        icon.textContent = "🎉";
+
+        button.textContent =
+            nextAction
+            ? "ไปต่อ ➜"
+            : "ตกลง";
+
+    }else{
+
+        icon.textContent = "❌";
+
+        button.textContent =
+            "ลองอีกครั้ง";
+
+    }
+
+    titleEl.textContent = title;
+
+    textEl.textContent = message;
+
+    modal.classList.add("show");
+}
+
+function closeFeedbackModal(){
+
+    const modal =
+        document.getElementById(
+            "feedbackModal"
+        );
+
+    modal.classList.remove("show");
+
+    const action =
+        feedbackModalNextAction;
+
+    feedbackModalNextAction =
+        null;
+
+    if(action){
+        action();
+    }
+}
+
+
+function showWrongBar(){
+    const bar = document.getElementById("wrongBar");
+    if(!bar) return;
+
+    // รีสตาร์ทแอนิเมชันทุกครั้งที่เด็กกดผิด
+    bar.classList.remove("show");
+    void bar.offsetWidth;
+    bar.classList.add("show");
+}
+
+function checkTool(clickedTool){
+    if(game.toolFound) return;
+
+    const correctTool = levelData[game.currentLevel].tool;
+
+    if(clickedTool === correctTool){
+        game.toolFound = true;
+        game.score += 1;
+        updateScoreDisplays();
+        playTone("correct");
+
+        document.querySelectorAll(".hotspot").forEach(h => {
+            h.style.pointerEvents = "none";
+        });
+
+        const reward = document.getElementById("toolReward");
+        const data = levelData[game.currentLevel];
+
+        if(data.reward){
+            reward.src = data.reward;
+            reward.style.display = "block";
+        }else{
+            // สำหรับ B / I / U ใช้ badge จำลองให้เห็นเครื่องมือที่พบ
+            reward.style.display = "block";
+            reward.removeAttribute("src");
+            reward.alt = data.short;
+            reward.style.width = "110px";
+            reward.style.height = "110px";
+            reward.style.background = "#fff";
+            reward.style.borderRadius = "25px";
+            reward.style.padding = "15px";
+            reward.style.objectFit = "contain";
+
+            const canvas = document.createElement("canvas");
+            canvas.width = 180;
+            canvas.height = 180;
+            const c = canvas.getContext("2d");
+            c.fillStyle = "#1677ff";
+            c.beginPath();
+            c.roundRect(10,10,160,160,28);
+            c.fill();
+            c.fillStyle = "#fff";
+            c.font = "bold 100px Arial";
+            c.textAlign = "center";
+            c.textBaseline = "middle";
+            c.fillText(
+                data.tool === "bold" ? "B" :
+                data.tool === "italic" ? "I" : "U",
+                90,90
+            );
+
+            reward.src = canvas.toDataURL();
+        }
+
+        document.getElementById("successTitle").textContent =
+            "🎉 เยี่ยมมาก! พบ " + data.short + " แล้ว";
+
+        document.getElementById("successText").textContent =
+            data.rewardText + "  +1 คะแนน";
+
+        document.getElementById("successBanner").classList.add("show");
+        makeConfetti(20);
+    }else{
+        // กดผิดในด่านที่ 1-4 หัก 1 คะแนนทันที
+        game.score -= 1;
+        updateScoreDisplays();
+        playTone("wrong");
+        showWrongBar();
+    }
+}
+
+function showHint(){
+    const data = levelData[game.currentLevel];
+    const instruction = document.getElementById("levelInstruction");
+
+    game.hintsUsed += 1;
+    game.score = Math.max(0,game.score - 1);
+    updateScoreDisplays();
+    playTone("click");
+
+    instruction.innerHTML = data.hint + " <strong>(ใช้ใบ้ -1 คะแนน)</strong>";
+
+    const correctHotspot = document.querySelector(
+        '.hotspot[data-tool="' + data.tool + '"]'
+    );
+
+    if(correctHotspot){
+        correctHotspot.classList.add("correct-pulse");
+        setTimeout(()=>{
+            correctHotspot.classList.remove("correct-pulse");
+        },5000);
+    }
+}
+
+function continueAfterSuccess(){
+    document.getElementById("successBanner").classList.remove("show");
+
+    if(game.currentLevel < 4){
+        game.currentLevel += 1;
+        showLevelIntro(game.currentLevel);
+    }else{
+        game.currentLevel = 5;
+        startQuiz();
+    }
+}
+
+/* =========================================================
+   QUIZ
+   ========================================================= */
+
+function startQuiz(){
+    showScreen("quizScreen");
+    game.currentQuestion = 0;
+    game.answered = false;
+    renderQuestion();
+    playTone("click");
+}
+
+function renderQuestion(){
+    const index = game.currentQuestion;
+    const item = questions[index];
+
+    document.getElementById("questionNumber").textContent =
+        "ข้อที่ " + (index+1) + " / " + questions.length;
+
+    document.getElementById("questionText").textContent = item.q;
+
+    document.getElementById("progressBar").style.width =
+        ((index) / questions.length * 100) + "%";
+
+    const answers = document.getElementById("answers");
+    answers.innerHTML = "";
+
+    document.getElementById("quizFeedback").textContent = "";
+    document.getElementById("nextQuestionBtn").classList.remove("show");
+
+    game.answered = false;
+
+    // สุ่มลำดับตัวเลือกในแต่ละข้อทุกครั้งที่แสดง
+    const shuffledAnswers = item.a.map((text, originalIndex) => ({
+        text,
+        originalIndex
+    }));
+
+    for(let i = shuffledAnswers.length - 1; i > 0; i--){
+        const j = Math.floor(Math.random() * (i + 1));
+        [shuffledAnswers[i], shuffledAnswers[j]] =
+        [shuffledAnswers[j], shuffledAnswers[i]];
+    }
+
+    shuffledAnswers.forEach(itemAnswer=>{
+        const btn = document.createElement("button");
+        btn.className = "answer";
+        btn.textContent = itemAnswer.text;
+        btn.onclick = ()=>answerQuestion(itemAnswer.originalIndex,btn);
+        answers.appendChild(btn);
+    });
+}
+
+function answerQuestion(index,button){
+    if(game.answered) return;
+
+    game.answered = true;
+
+    const item = questions[game.currentQuestion];
+    const buttons = [...document.querySelectorAll(".answer")];
+
+    buttons.forEach(b=>b.disabled=true);
+
+    if(index === item.correct){
+        button.classList.add("correct");
+        game.score += 1;
+        updateScoreDisplays();
+        document.getElementById("quizFeedback").textContent =
+            "✅ ถูกต้อง! เก่งมาก +1 คะแนน";
+        document.getElementById("quizFeedback").style.color = "#15914b";
+        playTone("correct");
+    }else{
+        button.classList.add("wrong");
+        buttons[item.correct].classList.add("correct");
+        document.getElementById("quizFeedback").textContent =
+            "❌ ยังไม่ถูก คำตอบที่ถูกคือ: " + item.a[item.correct];
+        document.getElementById("quizFeedback").style.color = "#c52f46";
+        playTone("wrong");
+    }
+
+    const next = document.getElementById("nextQuestionBtn");
+    next.textContent =
+        game.currentQuestion === questions.length-1
+        ? "🏆 ดูผลคะแนน"
+        : "ข้อต่อไป ➜";
+
+    next.classList.add("show");
+}
+
+function nextQuestion(){
+    if(!game.answered) return;
+
+    if(game.currentQuestion < questions.length-1){
+        game.currentQuestion += 1;
+        renderQuestion();
+    }else{
+        finishGame();
+    }
+}
+
+function finishGame(){
+    document.getElementById("progressBar").style.width = "100%";
+    document.getElementById("finalScore").textContent = game.score;
+
+    let message = "";
+
+    if(game.score >= 8){
+        message = "🌟 ยอดเยี่ยมมาก! เข้าใจเครื่องมือพื้นฐานของ Microsoft Word ได้ดีมาก";
+    }else if(game.score >= 6){
+        message = "🎉 เก่งมาก! เข้าใจเครื่องมือ Word ได้ดีแล้ว";
+    }else if(game.score >= 4){
+        message = "👍 ทำได้ดี! ลองทบทวนเครื่องมือ Word อีกครั้งแล้วจะเก่งขึ้น";
+    }else{
+        message = "💙 พยายามได้ดีมาก! ลองเล่นอีกครั้งเพื่อฝึกให้คล่องขึ้น";
+    }
+
+    document.getElementById("resultMessage").textContent = message;
+
+    showScreen("resultScreen");
+    playTone("win");
+    makeConfetti(80);
+}
+
+function restartGame(){
+    game.score = 0;
+    game.currentLevel = 1;
+    game.currentQuestion = 0;
+    game.hintsUsed = 0;
+    updateScoreDisplays();
+    showLevelIntro(1);
+    showScreen("page2");
+}
+
+/* =========================================================
+   CONFETTI
+   ========================================================= */
+
+function makeConfetti(amount=40){
+    const box = document.getElementById("confetti");
+    const colors = ["#1677ff","#ffd84d","#36c96f","#ff5b68","#8757ff","#ff8b2c"];
+
+    for(let i=0;i<amount;i++){
+        const p = document.createElement("div");
+        p.className = "confetti-piece";
+        p.style.left = Math.random()*100 + "%";
+        p.style.background = colors[Math.floor(Math.random()*colors.length)];
+        p.style.transform = "rotate(" + Math.random()*360 + "deg)";
+        p.style.animationDelay = (Math.random()*.7) + "s";
+        p.style.animationDuration = (1.8 + Math.random()*1.8) + "s";
+        box.appendChild(p);
+
+        setTimeout(()=>p.remove(),4200);
+    }
+}
+
+/* =========================================================
+   KEYBOARD SUPPORT
+   ไม่ใช้คีย์ลัดในเกม แต่ Enter ใช้เฉพาะการเริ่มจากช่องเลขที่
+   ========================================================= */
+
+document.getElementById("studentNumber").addEventListener("keydown",function(e){
+    if(e.key === "Enter"){
+        startAdventure();
+    }
+});
+
+/* กันคลิกขวาเฉพาะภาพหน้าจอ Word เพื่อให้บรรยากาศเหมือนเกม */
+document.querySelectorAll(".word-window img").forEach(img=>{
+    img.addEventListener("contextmenu",e=>e.preventDefault());
+});
+
+/* เริ่มต้นค่า */
+updateScoreDisplays();
+updateSoundButton();
+</script>
+</body>
+</html>
+
+<style>
+/* ไม่แสดงภาพเครื่องมือหลังตอบถูก — เหลือเฉพาะกรอบแจ้ง "เยี่ยมมาก!" */
+.tool-token,
+.correct-tool-image,
+.success-tool-image,
+.tool-popup-image,
+.answer-tool-image,
+.zoom-tool-image{
+    display:none !important;
+    visibility:hidden !important;
+    opacity:0 !important;
+    pointer-events:none !important;
+}
+</style>
